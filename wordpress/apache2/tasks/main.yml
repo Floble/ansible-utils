@@ -1,0 +1,7 @@
+---
+- name: install the latest version of apache2
+  become: yes
+  apt:
+    name: apache2
+    state: latest
+    update_cache: true

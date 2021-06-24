@@ -1,0 +1,54 @@
+---
+- name: install the latest versions of the mysql-related packages
+  become: yes
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: true
+  with_items:
+  - mysql-server
+  - mysql-client
+
+- name: make sure mysql service is running
+  become: yes
+  service:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: change the authentication plugin of mysql root user to mysql_native_password
+  become: yes
+  shell: mysql -u root -e 'UPDATE mysql.user SET plugin="mysql_native_password" WHERE user="root" AND host="localhost"'
+
+- name: Flush Privileges
+  become: yes
+  shell: mysql -u root -e 'FLUSH PRIVILEGES'
+
+- name: set myql root password
+  become: yes
+  mysql_user:
+    login_host: 'localhost'
+    login_user: 'root'
+    login_password: ''
+    name: 'root'
+    password: '{{ root_mysql_password }}'
+    state: present
+  
+- name: create mysql database
+  become: yes
+  mysql_db:
+    login_host: 'localhost'
+    login_user: 'root'
+    login_password: "{{ root_mysql_password }}"
+    name: "{{ wp_mysql_db }}"
+    state: present
+
+- name: create mysql user
+  become: yes
+  mysql_user:
+    login_host: 'localhost'
+    login_user: 'root'
+    login_password: "{{ root_mysql_password }}"
+    name: "{{ wp_mysql_user }}"
+    password: "{{ wp_mysql_password }}"
+    priv: '*.*:ALL'
