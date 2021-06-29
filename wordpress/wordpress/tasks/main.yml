@@ -36,7 +36,11 @@
   - {'regexp': "'username_here'", 'line': "define('DB_USER', '{{ wp_mysql_user }}');"}
   - {'regexp': "'password_here'", 'line': "define('DB_PASSWORD', '{{ wp_mysql_password }}');"}
 
-- name: healthcheck
+- name: healthcheck php
+  become: yes
+  shell: "php -v"
+
+- name: healthcheck mysql
   become: yes
   mysql_db:
     login_host: 'localhost'
