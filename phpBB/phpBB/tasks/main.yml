@@ -1,0 +1,77 @@
+---
+- name: install unzip
+  become: yes
+  apt:
+    name: unzip
+    state: latest
+    update_cache: true
+
+- name: download phpBB
+  get_url:
+    url: "https://download.phpbb.com/pub/release/3.3/3.3.4/phpBB-3.3.4.zip"
+    dest: "/tmp/phpBB.zip"
+    validate_certs: no
+
+- name: extract phpBB
+  become: yes
+  unarchive:
+    src: "/tmp/phpBB.zip"
+    dest: "/var/www/"
+    copy: no
+
+- name: change owner of phpBB directory
+  become: yes
+  file:
+    path: /var/www/
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+
+- name: change file permissions
+  become: yes
+  file:
+    path: /var/www/phpBB3/config.php
+    mode: '0660'
+
+- name: change directory permissions
+  become: yes
+  file:
+    path: /var/www/phpBB3/images/avatars/upload/
+    state: directory
+    recurse: yes
+    mode: '0660'
+
+- name: change directory permissions
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    mode: '0770'
+  with_items:
+    - /var/www/phpBB3/store/
+    - /var/www/phpBB3/cache/
+    - /var/www/phpBB3/files/
+
+- name: update default apache site
+  become: yes
+  lineinfile:
+    dest: "/etc/apache2/sites-enabled/000-default.conf"
+    regexp: "(.)+DocumentRoot /var/www/html"
+    line: "DocumentRoot /var/www/phpBB3"
+  notify:
+  - restart apache
+
+- name: healthcheck php
+  become: yes
+  shell: "php -v"
+
+- name: healthcheck mysql
+  become: yes
+  mysql_db:
+    login_host: 'localhost'
+    login_user: "{{ phpBB_mysql_user }}"
+    login_password: "{{ phpBB_mysql_password }}"
+    name: "{{ phpBB_mysql_db }}"
+    state: present
