@@ -1,0 +1,61 @@
+---
+- name: install the chrony package
+  become: yes
+  package:
+    name: chrony
+    state: latest
+
+- name: update the chrony configuration (remove all defined timeservers)
+  become: yes
+  lineinfile:
+    dest: "/etc/chrony.conf"
+    regexp: "{{ item.regexp }}"
+    state: absent
+  with_items:
+  - {'regexp': "# servers"}
+  - {'regexp': "server "}
+  - {'regexp': "pool "}
+  - {'regexp': "! pool "}
+  when: ansible_facts['distribution'] != "Ubuntu" and ansible_facts['distribution'] != "Debian"
+
+- name: update the chrony configuration (remove all defined timeservers)
+  become: yes
+  lineinfile:
+    dest: "/etc/chrony/chrony.conf"
+    regexp: "{{ item.regexp }}"
+    state: absent
+  with_items:
+  - {'regexp': "# servers"}
+  - {'regexp': "server "}
+  - {'regexp': "pool "}
+  - {'regexp': "! pool "}
+  when: ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
+
+- name: update the chrony configuration (add the MMST timeserver)
+  become: yes
+  lineinfile:
+    dest: "/etc/chrony.conf"
+    line: "{{ item.line }}"
+    state: present
+  with_items:
+  - {'line': "\n#servers"}
+  - {'line': "server {{ time_server }} iburst prefer"}
+  when: ansible_facts['distribution'] != "Ubuntu" and ansible_facts['distribution'] != "Debian"
+
+- name: update the chrony configuration (add the MMST timeserver)
+  become: yes
+  lineinfile:
+    dest: "/etc/chrony/chrony.conf"
+    line: "{{ item.line }}"
+    state: present
+  with_items:
+  - {'line': "\n#servers"}
+  - {'line': "server {{ time_server }} iburst prefer"}
+  when: ansible_facts['distribution'] == "Ubuntu" or ansible_facts['distribution'] == "Debian"
+
+- name: start the chronyd service
+  become: yes
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes
