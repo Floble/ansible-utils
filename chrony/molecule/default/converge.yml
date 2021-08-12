@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    time_server: time.google.com
+  roles:
+    - chrony
