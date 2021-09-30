@@ -1,0 +1,25 @@
+  - name: Init kubeadm
+    become: yes
+    raw: sudo kubeadm init    --pod-network-cidr=192.168.0.0/16  --ignore-preflight-errors=all
+
+  - name: Create .kube directory
+    become: yes
+    raw: mkdir -p $HOME/.kube
+    
+  - name: Edit config (1/2)
+    become: yes
+    raw: sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
+  - name: Edit config (2/2)
+    become: yes
+    raw: sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+  - name: Install python package manager
+    become: true
+    apt:
+      name: python3-pip
+
+  - name: Install openshift
+    become: true
+    pip:
+      name: openshift 

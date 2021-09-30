@@ -1,0 +1,15 @@
+  - name: Disable Firewall
+    become: yes
+    raw: ufw disable
+
+  - name: Disable swap
+    become: yes
+    raw: swapoff -a; sed -i '/swap/d' /etc/fstab
+
+  - name: Add the iptables rule to sysctl.conf
+    become: yes
+    raw: echo "net.bridge.bridge-nf-call-iptables=1" | sudo tee -a /etc/sysctl.conf
+  
+  - name: Safe settings
+    become: yes
+    raw: sysctl --system

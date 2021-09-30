@@ -1,0 +1,21 @@
+  - name: Add an apt signing key for Kubernetes
+    become: yes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+  
+  - name: Add apt repository
+    become: yes
+    raw:  echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+
+  - name: Update
+    become: yes
+    raw: apt update
+
+  - name: Install Kubernetes
+    become: yes
+    apt:
+      pkg:
+      - kubeadm=1.18.5-00
+      - kubelet=1.18.5-00
+      - kubectl=1.18.5-00
